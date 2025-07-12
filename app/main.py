@@ -21,7 +21,7 @@ while True:
             host="localhost",
             database="fastapi",
             user="postgres",
-            password="ohhmypsw",  
+            password="whoamypsw",  
             cursor_factory=RealDictCursor,
         )
         cursor = conn.cursor()
@@ -76,9 +76,9 @@ def create_posts(post: Post):
 
 
 @app.get("/posts/{id}")
-def get_post(id: int, response: Response):
-
-    post = find_post(id)
+def get_post(id: int):
+    cursor.execute("""SELECT * from posts WHERE id = %s """, (str(id)))
+    post = cursor.fetchone()
 
     if not post:
         raise HTTPException(
