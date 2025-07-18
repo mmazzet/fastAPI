@@ -1,4 +1,6 @@
 from typing import Optional, List
+from pydantic import BaseModel
+
 from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
 from random import randrange
@@ -6,7 +8,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
 from sqlalchemy.orm import Session
-from . import models, schemas
+from . import models, schemas, utils
 from .database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
@@ -29,14 +31,6 @@ while True:
         print("❌ Connecting to the database failed")
         print("Error:", error)
         time.sleep(2)
-
-        
-
-
-my_posts = [
-    {"title": "title of post 1", "content": "content of post 1", "id": 1},
-    {"title": "favourite food", "content": "I like pizza", "id": 2},
-]
 
 
 def find_post(id):
@@ -128,3 +122,16 @@ def update_post(id: int, updated_post: schemas.PostCreate, db:Session = Depends(
 
     db.commit()
     return post_query.first()
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
+def create_user(user: schemas.UserCreate, db:Session = Depends(get_db)):
+
+
+    hashed_password = utils.hash(user.password)
+    user.password = hashed_password
+    new_user = models.User(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
