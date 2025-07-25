@@ -13,6 +13,10 @@ from sqlalchemy.sql.functions import mode
 from . import models, schemas, utils
 from .database import engine, get_db
 from .routers import post, user, auth
+from dotenv import load_dotenv
+import os
+
+load_dotenv() 
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -21,10 +25,10 @@ app = FastAPI()
 while True:
     try:
         conn = psycopg2.connect(
-            host="localhost",
-            database="fastapi",
-            user="postgres",
-            password="whoamypsw",  
+            host=os.getenv("DB_HOST"),
+            database=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"), 
             cursor_factory=RealDictCursor,
         )
         cursor = conn.cursor()
