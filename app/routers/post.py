@@ -12,6 +12,11 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 def get_posts(
     db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)
 ):
+
+
+    # Enables the owner to see only own posts
+    # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+
     posts = db.query(models.Post).all()
     return posts
 
@@ -50,7 +55,15 @@ def get_post(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id: {id} was not found",
         )
-    print(post)
+    
+    # Enables only the owner of the posts to get one of own posts
+    # if post.owner_id != current_user.id:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail="Not authorized to perform requested action",
+    #     )
+
+
     return post
 
 
