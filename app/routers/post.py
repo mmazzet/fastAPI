@@ -15,12 +15,11 @@ def get_posts(
     skip: int = 0,
     search: Optional[str] = ""
 ):
-    print(limit)
 
 
     # Enables the owner to see only own posts
     # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
-    print(search)
+
     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
     return posts
 
