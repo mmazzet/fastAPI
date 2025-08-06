@@ -61,7 +61,7 @@ def create_posts(
     return new_post
 
 
-@router.get("/{id}", response_model=schemas.Post)
+@router.get("/{id}", response_model=schemas.PostOut)
 def get_post(
     id: int,
     db: Session = Depends(get_db),
@@ -70,7 +70,9 @@ def get_post(
     # cursor.execute("""SELECT * from posts WHERE id = %s """, (str(id)))
     # post = cursor.fetchone()
 
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    # post = db.query(models.Post).filter(models.Post.id == id).first()
+
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.id == id).first()
 
     if not post:
         raise HTTPException(
