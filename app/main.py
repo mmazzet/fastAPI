@@ -18,6 +18,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.run_server(debug=True, port=8050, host='0.0.0.0')
 
 app.include_router(post.router)
 app.include_router(user.router)
