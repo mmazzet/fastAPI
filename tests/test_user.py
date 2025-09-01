@@ -1,0 +1,45 @@
+import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+
+def test_create_user_success(mocker):
+    # Mock the database session and user model
+    mock_db = mocker.Mock()
+    mocker.patch("app.routers.user.get_db", return_value=mock_db)
+    mocker.patch("app.routers.user.utils.hash", return_value="hashedpassword")
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+    mock_db.add.return_value = None
+    mock_db.commit.return_value = None
+    mock_db.refresh.return_value = None
+
+    user_data = {"email": "test@example.com", "password": "password123"}
+
+    response = client.post("/users/", json=user_data)
+    assert response.status_code == 201
+
+
+def test_create_user_fail_existing_email(mocker):
+    mock_db = mocker.Mock()
+    mocker.patch("app.routers.user.get_db", return_value=mock_db)
+    mock_db.query.return_value.filter.return_value.first.return_value = (
+        True  # User exists
+    )
+
+    user_data = {"email": "test@example.com", "password": "password123"}
+
+    response = client.post("/users/", json=user_data)
+    assert response.status_code == 400
+    assert "already exists" in response.json()["detail"]
+
+
+def test_get_user_not_found(mocker):
+    mock_db = mocker.Mock()
+    mocker.patch("app.routers.user.get_db", return_value=mock_db)
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+
+    response = client.get("/users/999")
+    assert response.status_code == 404
+    assert "does not exist" in response.json()["detail"]
