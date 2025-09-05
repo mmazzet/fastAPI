@@ -1,6 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app import schemas
+
+
+
 
 client = TestClient(app)
 
@@ -13,7 +17,8 @@ def test_root():
 
 def test_create_user():
     res = client.post("/users/", json={"email":"pippa@user.com", "password":"secret"})
-    print(res.json())
+    new_user = schemas.UserOut(**res.json())
+    assert new_user.email == "pippa@user.com"
     assert res.status_code == 201
 
 # def test_create_user_success(mocker):
