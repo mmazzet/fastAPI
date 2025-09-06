@@ -15,6 +15,10 @@ def test_create_user(client):
     assert new_user.email == "pippa@user.com"
     assert res.status_code == 201
 
+def test_login_user(client):
+    res = client.post("/login", data={"username":"pippa@user.com", "password":"secret"})
+    assert res.status_code == 200
+
 # def test_create_user_success(mocker):
 #     # Mock the database session and user model
 #     mock_db = mocker.Mock()
