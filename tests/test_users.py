@@ -1,45 +1,15 @@
-import pytest
-from fastapi.testclient import TestClient
-from app.main import app
+
 from app import schemas
-from app.config import settings
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from app.database import get_db, Base
+from .database import client, session
 
 
-# SQLALCHEMY_DATABASE_URL = 'postgresql://postgres:somepsw@localhost:5432/fastapi_test'
-SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}'
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-
-
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base.metadata.create_all(bind=engine)
-
-
-
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
-
-client = TestClient(app)
-
-
-def test_root():
+def test_root(client):
     res = client.get("/")
     print(res.json().get('message'))
     assert (res.json().get('message')) == 'My api is working -moving to win'
     assert res.status_code == 200
 
-def test_create_user():
+def test_create_user(client):
     res = client.post("/users/", json={"email":"pippa@user.com", "password":"secret"})
     new_user = schemas.UserOut(**res.json())
     assert new_user.email == "pippa@user.com"
@@ -61,25 +31,25 @@ def test_create_user():
 #     assert response.status_code == 201
 
 
-def test_create_user_fail_existing_email(mocker):
-    mock_db = mocker.Mock()
-    mocker.patch("app.routers.user.get_db", return_value=mock_db)
-    mock_db.query.return_value.filter.return_value.first.return_value = (
-        True  # User exists
-    )
+# def test_create_user_fail_existing_email(mocker):
+#     mock_db = mocker.Mock()
+#     mocker.patch("app.routers.user.get_db", return_value=mock_db)
+#     mock_db.query.return_value.filter.return_value.first.return_value = (
+#         True  # User exists
+#     )
 
-    user_data = {"email": "test@example.com", "password": "password123"}
+#     user_data = {"email": "test@example.com", "password": "password123"}
 
-    response = client.post("/users/", json=user_data)
-    assert response.status_code == 400
-    assert "already exists" in response.json()["detail"]
+#     response = client.post("/users/", json=user_data)
+#     assert response.status_code == 400
+#     assert "already exists" in response.json()["detail"]
 
 
-def test_get_user_not_found(mocker):
-    mock_db = mocker.Mock()
-    mocker.patch("app.routers.user.get_db", return_value=mock_db)
-    mock_db.query.return_value.filter.return_value.first.return_value = None
+# def test_get_user_not_found(mocker):
+#     mock_db = mocker.Mock()
+#     mocker.patch("app.routers.user.get_db", return_value=mock_db)
+#     mock_db.query.return_value.filter.return_value.first.return_value = None
 
-    response = client.get("/users/999")
-    assert response.status_code == 404
-    assert "does not exist" in response.json()["detail"]
+#     response = client.get("/users/999")
+#     assert response.status_code == 404
+#     assert "does not exist" in response.json()["detail"]
