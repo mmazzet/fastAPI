@@ -26,6 +26,20 @@ def test_login_user(client, test_user):
     assert login_res.token_type == 'bearer'
     assert res.status_code == 200
 
+@pytest.mark.parametrize("data, status_code", [
+    ({"username": "wrongemail@gmail.com", "password": "secret"}, 403),
+    ({"username": "pippa@user.com", "password": "wrongpassword"}, 403),
+    ({"username": "wrongemail@gmail.com", "password": "wrongpassword"}, 403),
+    ({"password": "secret"}, 422),            # username missing
+    ({"username": "pippa@user.com"}, 422),    # password missing
+])
+def test_incorrect_login(test_user, client, data, status_code):
+    res = client.post("/login", data=data)
+    assert res.status_code == status_code
+
+
+
+
 # def test_create_user_success(mocker):
 #     # Mock the database session and user model
 #     mock_db = mocker.Mock()
