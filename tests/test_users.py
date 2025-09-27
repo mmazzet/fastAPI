@@ -30,8 +30,8 @@ def test_login_user(client, test_user):
     ({"username": "wrongemail@gmail.com", "password": "secret"}, 403),
     ({"username": "pippa@user.com", "password": "wrongpassword"}, 403),
     ({"username": "wrongemail@gmail.com", "password": "wrongpassword"}, 403),
-    ({"password": "secret"}, 422),            # username missing
-    ({"username": "pippa@user.com"}, 422),    # password missing
+    ({"password": "secret"}, 422),
+    ({"username": "pippa@user.com"}, 422),
 ])
 def test_incorrect_login(test_user, client, data, status_code):
     res = client.post("/login", data=data)
