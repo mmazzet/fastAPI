@@ -71,7 +71,7 @@ jobs:
       #   run: echo ${{ steps.docker_build.output.digest }}
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [build]
     environment:
       name: production
